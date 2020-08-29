@@ -1,18 +1,23 @@
 // led "wall" thing
 // MIT
 // author: skittlemittle
-
+#include <string.h>
+// wow global vars what a loser
 int gndPins[] = {5, 6, 7};
 int pwrPins[] = {8, 9, 10};
 
-const int len_sequence = 2;
+int len_sequence;
 int* sequence[50];
 int frameRate = 10;
 bool sequenceExists = false;
+// serial stuff
+char command[1024];
+char commandBuffer[128];
+int commandBufferSize;
 
 void setup()
 {
-    Serial.begin(9600);
+    Serial.begin(115200);
     for (int i = 0; i < sizeof gndPins / sizeof gndPins[0]; i++) {
         pinMode(gndPins[i], OUTPUT);
         pinMode(pwrPins[i], OUTPUT);
@@ -81,8 +86,9 @@ void loop()
             curFrame[row][col][2] = blue;
         }
         // draw the frame
+        // TODO: fastLED
         for (int i = 0; i < sizeof gndPins / sizeof gndPins[0]; i++) {
-            for (int j = 0; j < sizeof gndPins / sizeof gndPins[0]; j++) {
+            for (int j = 0; j < sizeof pwrPins / sizeof pwrPins[0]; j++) {
                 if (curFrame[i][j][0] > 0) {
                     digitalWrite(gndPins[i], LOW);
                     analogWrite(pwrPins[j], curFrame[i][j][0]);
@@ -98,71 +104,106 @@ void loop()
 }
 
 /*
+ * read large data from the serial port
+ * author: Andrei Ostanin
+ * https://ostanin.org/2012/01/08/sending-large-strings-of-data-to-arduino/ 
+ */
+
+void readCommandBuffer(int bytesToRead)
+{
+    int i = 0;
+    char c = 0;
+    while (i < 128 && (i < bytesToRead || bytesToRead <= 0)) {
+        while (!Serial.available())
+            ;
+        c = Serial.read();
+        if (c == '\r' || c == '\n') {
+            break;
+        }
+        commandBuffer[i] = c;
+        i++;
+    }
+    commandBufferSize = i;
+}
+
+void readCommand()
+{
+    command[0] = '\0';
+    readCommandBuffer(0);
+    if (strncmp(commandBuffer, "RCV", 3) == 0) {
+        commandBuffer[commandBufferSize] = '\0';
+        int expectedSize = atoi(commandBuffer + 4);
+        if (expectedSize <= 0 || expectedSize > 1024) {
+            return;
+        }
+        Serial.println("RDY");
+        int bytesRead = 0;
+        while (bytesRead < expectedSize) {
+            readCommandBuffer(expectedSize - bytesRead);
+            memcpy(command + bytesRead, commandBuffer, commandBufferSize);
+            bytesRead += commandBufferSize;
+            Serial.print("ACK ");
+            Serial.println(commandBufferSize);
+        }
+        command[bytesRead] = '\0';
+    }
+    else {
+        memcpy(command, commandBuffer, commandBufferSize);
+        command[commandBufferSize] = '\0';
+    }
+}
+
+/*
  * Read the animation
  */
-void serialEvent()
-{
-    int frameCount = 0;
-    int valCount = 0;
-    bool headerRead = false;
-    // me and the boys parsing
-    while (Serial.available()) {
-        char check = (char)Serial.peek();
-        size_t didRead = 0;
-        char value[3] = "";
+void serialEvent() {
+    if (Serial.available()) {
+        readCommand();
 
-        if (headerRead) {
-            if (check == '+') {        // new frame
-                frameCount++;
-                Serial.read();
-            } else if (check == ',') { // new val
-                valCount++;
-                Serial.read();
+        // parse header
+        char *header = strtok(command, "+");
+        Serial.println(header);
+        String headStr = String(header);
+        int numFrames = headStr.substring(0, 2).toInt();
+        len_sequence = numFrames;
+        frameRate = headStr.substring(2, 4).toInt();
+        Serial.println(numFrames);
+        Serial.println(frameRate);
+        headStr.remove(0, 4); // we dont need em anymore
+
+        for (size_t i = 0; i < numFrames; i++) {
+            const int frameSize = headStr.substring(0, 2).toInt();
+            headStr.remove(0, 2); // monke brain
+            sequence[i] = new int[frameSize];
+        }
+        // parse body
+        char *body = strtok(NULL, "+");
+        int framecnt = 0;
+        int fieldcnt = 0;
+        String accumulator;
+        Serial.print("B ");
+        Serial.println(body);
+        for (size_t i = 0; i < strlen(body); i++) {
+            if (body[i] != ',' && body[i] != '-') {
+                accumulator.concat(body[i]);
             } else {
-                didRead = Serial.readBytes(value, 3);
+                sequence[framecnt][fieldcnt] = accumulator.toInt();
+                accumulator.remove(0);
+                if (body[i] == ',') {
+                    fieldcnt++;
+                } else if (body[i] == '-') {
+                    framecnt++;
+                    fieldcnt = 0;
+                }
             }
-            // finally write it
-            if (didRead > 0) {
-                sequence[frameCount][valCount] = atoi(value);
-                Serial.println(atoi(value));
-            }
-        } else {
-            /*
-             * Read header and prep sequence array
-             * numFrames, frameRate, and each frameSize are all 2 bytes
-             */
-            char nfArr[4];
-            Serial.readBytes(nfArr, 4);
-            String head = String(nfArr);
-            int numFrames = head.substring(0,2).toInt();
-            frameRate = head.substring(2).toInt();
-            Serial.print("Header");
-            Serial.print(numFrames);
-            Serial.print(' ');
-            Serial.println(frameRate);
-
-            for (size_t i = 0; i < numFrames; i++) {
-                char frameSizeArr[2] = "";
-                Serial.readBytes(frameSizeArr, 2);
-                const int frameSize = atoi(frameSizeArr);
-                sequence[i] = new int[frameSize];
-            }
-            headerRead = true;
         }
-    }
-
-    for (int i = 0; i < len_sequence; i++) {
-        for (int j = 0; j < 10; j += 5) {
-            Serial.print(sequence[i][j]);
-            Serial.print(' ');
-            Serial.print(sequence[i][j+1]);
-            Serial.print(' ');
-            Serial.print(sequence[i][j+2]);
-            Serial.print(' ');
-            Serial.print(sequence[i][j+3]);
-            Serial.print(' ');
-            Serial.println(sequence[i][j+4]);
+        Serial.println("SEQUENCE");
+        for (int i = 0; i < numFrames; i++) {
+            for (int j = 0; j < 10; j++) {
+                Serial.println(sequence[i][j]);
+            }
         }
+        sequenceExists = true;
     }
-    sequenceExists = true;
 }
+
