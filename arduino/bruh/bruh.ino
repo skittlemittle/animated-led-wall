@@ -1,105 +1,102 @@
 // led "wall" thing
 // MIT
 // author: skittlemittle
-#include <string.h>
-// wow global vars what a loser
-int gndPins[] = {5, 6, 7};
-int pwrPins[] = {8, 9, 10};
 
-int len_sequence;
+#include <FastLED.h>
+
+#define LED_PIN 3
+#define COLOR_ORDER GRB
+#define CHIPSET WS2811
+#define BRIGHTNESS 64
+// wow global vars what a loser
+const uint8_t kMatrixWidth = 8;
+const uint8_t kMatrixHeight = 8;
+const bool kMatrixSerpentineLayout = true;
+#define NUM_LEDS (kMatrixHeight * kMatrixWidth)
+CRGB leds_plus_safety_pixel[NUM_LEDS + 1];
+CRGB* const leds(leds_plus_safety_pixel + 1);
+
+uint8_t lenSequence;
 int* sequence[50];
-int frameRate = 10;
+uint8_t frameSizes[50];
+uint8_t frameRate;
 bool sequenceExists = false;
 // serial stuff
 char command[1024];
 char commandBuffer[128];
 int commandBufferSize;
 
-void setup()
-{
-    Serial.begin(115200);
-    for (int i = 0; i < sizeof gndPins / sizeof gndPins[0]; i++) {
-        pinMode(gndPins[i], OUTPUT);
-        pinMode(pwrPins[i], OUTPUT);
-        // have em all off
-        digitalWrite(gndPins[i], HIGH);
-    }
 /*
-    // dummy deltas
-    //1
-    sequence[0][0] = 0;
-    sequence[0][1] = 0;
-    sequence[0][2] = 255;
-    sequence[0][3] = 0;
-    sequence[0][4] = 0;
-    //
-    sequence[0][5] = 1; //2
-    sequence[0][6] = 0;
-    sequence[0][7] = 0;
-    sequence[0][8] = 0;
-    sequence[0][9] = 0;
-    //2
-    sequence[1][0] = 0;
-    sequence[1][1] = 0;
-    sequence[1][2] = 0;
-    sequence[1][3] = 0;
-    sequence[1][4] = 0;
-    // off the prev one
-    sequence[1][5] = 1;
-    sequence[1][6] = 0;
-    sequence[1][7] = 255;
-    sequence[1][8] = 0;
-    sequence[1][9] = 0;
-    //3
-    sequence[2][0] = 1;
-    sequence[2][1] = 0;
-    sequence[2][2] = 0;
-    sequence[2][3] = 0;
-    sequence[2][4] = 0;
-    // off the prev one
-    sequence[2][5] = 2;
-    sequence[2][6] = 0;
-    sequence[2][7] = 255;
-    sequence[2][8] = 0;
-    sequence[2][9] = 0;
-*/
+ *Helper function that returns led index number given an xy
+ *yoinked from the fastled examples:https://github.com/FastLED/
+ */
+uint16_t XY(uint8_t x, uint8_t y)
+{
+    uint16_t i;
+
+    if (kMatrixSerpentineLayout == false) {
+        i = (y * kMatrixWidth) + x;
+    }
+
+    if (kMatrixSerpentineLayout == true) {
+        if (y & 0x01) {
+            // Odd rows run backwards
+            uint8_t reverseX = (kMatrixWidth - 1) - x;
+            i = (y * kMatrixWidth) + reverseX;
+        }
+        else {
+            // Even rows run forwards
+            i = (y * kMatrixWidth) + x;
+        }
+    }
+
+    return i;
+}
+
+/* 
+ * wraps XY() and gives you array out of bounds protection
+ * you have to provide an array 1 bigger than what you need
+ * and you never use the [0]th position thats the overflow
+ * also yoinked from the fastled examples
+ */
+uint16_t XYsafe(uint8_t x, uint8_t y)
+{
+    if (x >= kMatrixWidth) return -1;
+    if (y >= kMatrixHeight) return -1;
+    return XY(x, y);
 }
 
 void loop()
 {
     if (!sequenceExists) return;
 
-    int curFrame[3][3][3] = {0};
+    byte curFrame[8][8][3] = {0};
     // generate the frame amirite
-    for (int frame = 0; frame < len_sequence; frame++) {
+    for (int frame = 0; frame < lenSequence; frame++) {
         // TODO: magic numbers!
-        for (int j = 0; j < 10; j+=5) {
+        for (int j = 0; j < frameSizes[frame]; j += 5) {
             // monkey brain
             int row = sequence[frame][j];
-            int col = sequence[frame][j+1];
-            int red = sequence[frame][j+2];
-            int green = sequence[frame][j+3];
-            int blue = sequence[frame][j+4];
+            int col = sequence[frame][j + 1];
+            int red = sequence[frame][j + 2];
+            int green = sequence[frame][j + 3];
+            int blue = sequence[frame][j + 4];
             // monkey brain ctd
             curFrame[row][col][0] = red;
             curFrame[row][col][1] = green;
             curFrame[row][col][2] = blue;
         }
         // draw the frame
-        // TODO: fastLED
-        for (int i = 0; i < sizeof gndPins / sizeof gndPins[0]; i++) {
-            for (int j = 0; j < sizeof pwrPins / sizeof pwrPins[0]; j++) {
-                if (curFrame[i][j][0] > 0) {
-                    digitalWrite(gndPins[i], LOW);
-                    analogWrite(pwrPins[j], curFrame[i][j][0]);
-                    delayMicroseconds(1);
-                }
+        for (byte y = 0; y < kMatrixHeight; y++) {
+            for (byte x = 0; x < kMatrixWidth; x++) {
+                leds[XYsafe(x, y)].r = curFrame[x][y][0];
+                leds[XYsafe(x, y)].g = curFrame[x][y][1];
+                leds[XYsafe(x, y)].b = curFrame[x][y][2];
             }
         }
+        FastLED.setBrightness(BRIGHTNESS);
+        FastLED.show();
         delay(1000 / frameRate);
-        for (size_t i = 0; i < sizeof gndPins / sizeof gndPins[0]; i++) {
-            digitalWrite(gndPins[i], HIGH);
-        }
     }
 }
 
@@ -156,54 +153,55 @@ void readCommand()
 /*
  * Read the animation
  */
-void serialEvent() {
+void serialEvent()
+{
     if (Serial.available()) {
         readCommand();
 
         // parse header
-        char *header = strtok(command, "+");
-        Serial.println(header);
+        char* header = strtok(command, "+");
         String headStr = String(header);
         int numFrames = headStr.substring(0, 2).toInt();
-        len_sequence = numFrames;
+        if (numFrames <= 0) return;  // deal with stupid empty commands wiping data
+
+        lenSequence = numFrames;
         frameRate = headStr.substring(2, 4).toInt();
-        Serial.println(numFrames);
-        Serial.println(frameRate);
-        headStr.remove(0, 4); // we dont need em anymore
+        headStr.remove(0, 4);  // we dont need em anymore
 
         for (size_t i = 0; i < numFrames; i++) {
             const int frameSize = headStr.substring(0, 2).toInt();
-            headStr.remove(0, 2); // monke brain
+            headStr.remove(0, 2);  // monke brain
             sequence[i] = new int[frameSize];
+            frameSizes[i] = frameSize;
         }
         // parse body
-        char *body = strtok(NULL, "+");
+        char* body = strtok(NULL, "+");
         int framecnt = 0;
         int fieldcnt = 0;
         String accumulator;
-        Serial.print("B ");
-        Serial.println(body);
         for (size_t i = 0; i < strlen(body); i++) {
             if (body[i] != ',' && body[i] != '-') {
                 accumulator.concat(body[i]);
-            } else {
+            }
+            else {
                 sequence[framecnt][fieldcnt] = accumulator.toInt();
                 accumulator.remove(0);
                 if (body[i] == ',') {
                     fieldcnt++;
-                } else if (body[i] == '-') {
+                }
+                else if (body[i] == '-') {
                     framecnt++;
                     fieldcnt = 0;
                 }
-            }
-        }
-        Serial.println("SEQUENCE");
-        for (int i = 0; i < numFrames; i++) {
-            for (int j = 0; j < 10; j++) {
-                Serial.println(sequence[i][j]);
             }
         }
         sequenceExists = true;
     }
 }
 
+void setup()
+{
+    FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
+    FastLED.setBrightness(BRIGHTNESS);
+    Serial.begin(115200);
+}
