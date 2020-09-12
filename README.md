@@ -1,6 +1,12 @@
 # animated-led-wall
 led wall that you can send animations to
 
+# setting up
+
+- flash ledwall/ledwall.ino onto your arduino
+
+- ?
+
 ## Animation format:
 
 ```

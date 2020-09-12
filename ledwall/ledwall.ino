@@ -14,10 +14,10 @@ const uint8_t kMatrixHeight = 8;
 const bool kMatrixSerpentineLayout = true;
 #define NUM_LEDS (kMatrixHeight * kMatrixWidth)
 CRGB leds_plus_safety_pixel[NUM_LEDS + 1];
-CRGB* const leds(leds_plus_safety_pixel + 1);
+CRGB *const leds(leds_plus_safety_pixel + 1);
 
 uint8_t lenSequence;
-int* sequence[50];
+int *sequence[50];
 uint8_t frameSizes[50];
 uint8_t frameRate;
 bool sequenceExists = false;
@@ -30,8 +30,7 @@ int commandBufferSize;
  *Helper function that returns led index number given an xy
  *yoinked from the fastled examples:https://github.com/FastLED/
  */
-uint16_t XY(uint8_t x, uint8_t y)
-{
+uint16_t XY(uint8_t x, uint8_t y) {
     uint16_t i;
 
     if (kMatrixSerpentineLayout == false) {
@@ -43,8 +42,7 @@ uint16_t XY(uint8_t x, uint8_t y)
             // Odd rows run backwards
             uint8_t reverseX = (kMatrixWidth - 1) - x;
             i = (y * kMatrixWidth) + reverseX;
-        }
-        else {
+        } else {
             // Even rows run forwards
             i = (y * kMatrixWidth) + x;
         }
@@ -53,22 +51,23 @@ uint16_t XY(uint8_t x, uint8_t y)
     return i;
 }
 
-/* 
+/*
  * wraps XY() and gives you array out of bounds protection
  * you have to provide an array 1 bigger than what you need
  * and you never use the [0]th position thats the overflow
  * also yoinked from the fastled examples
  */
-uint16_t XYsafe(uint8_t x, uint8_t y)
-{
-    if (x >= kMatrixWidth) return -1;
-    if (y >= kMatrixHeight) return -1;
+uint16_t XYsafe(uint8_t x, uint8_t y) {
+    if (x >= kMatrixWidth)
+        return -1;
+    if (y >= kMatrixHeight)
+        return -1;
     return XY(x, y);
 }
 
-void loop()
-{
-    if (!sequenceExists) return;
+void loop() {
+    if (!sequenceExists)
+        return;
 
     byte curFrame[8][8][3] = {0};
     // generate the frame amirite
@@ -103,11 +102,10 @@ void loop()
 /*
  * read large data from the serial port
  * author: Andrei Ostanin
- * https://ostanin.org/2012/01/08/sending-large-strings-of-data-to-arduino/ 
+ * https://ostanin.org/2012/01/08/sending-large-strings-of-data-to-arduino/
  */
 
-void readCommandBuffer(int bytesToRead)
-{
+void readCommandBuffer(int bytesToRead) {
     int i = 0;
     char c = 0;
     while (i < 128 && (i < bytesToRead || bytesToRead <= 0)) {
@@ -123,8 +121,7 @@ void readCommandBuffer(int bytesToRead)
     commandBufferSize = i;
 }
 
-void readCommand()
-{
+void readCommand() {
     command[0] = '\0';
     readCommandBuffer(0);
     if (strncmp(commandBuffer, "RCV", 3) == 0) {
@@ -143,8 +140,7 @@ void readCommand()
             Serial.println(commandBufferSize);
         }
         command[bytesRead] = '\0';
-    }
-    else {
+    } else {
         memcpy(command, commandBuffer, commandBufferSize);
         command[commandBufferSize] = '\0';
     }
@@ -153,43 +149,41 @@ void readCommand()
 /*
  * Read the animation
  */
-void serialEvent()
-{
+void serialEvent() {
     if (Serial.available()) {
         readCommand();
 
         // parse header
-        char* header = strtok(command, "+");
+        char *header = strtok(command, "+");
         String headStr = String(header);
         int numFrames = headStr.substring(0, 2).toInt();
-        if (numFrames <= 0) return;  // deal with stupid empty commands wiping data
+        if (numFrames <= 0)
+            return; // deal with stupid empty commands wiping data
 
         lenSequence = numFrames;
         frameRate = headStr.substring(2, 4).toInt();
-        headStr.remove(0, 4);  // we dont need em anymore
+        headStr.remove(0, 4); // we dont need em anymore
 
         for (size_t i = 0; i < numFrames; i++) {
             const int frameSize = headStr.substring(0, 2).toInt();
-            headStr.remove(0, 2);  // monke brain
+            headStr.remove(0, 2); // monke brain
             sequence[i] = new int[frameSize];
             frameSizes[i] = frameSize;
         }
         // parse body
-        char* body = strtok(NULL, "+");
+        char *body = strtok(NULL, "+");
         int framecnt = 0;
         int fieldcnt = 0;
         String accumulator;
         for (size_t i = 0; i < strlen(body); i++) {
             if (body[i] != ',' && body[i] != '-') {
                 accumulator.concat(body[i]);
-            }
-            else {
+            } else {
                 sequence[framecnt][fieldcnt] = accumulator.toInt();
                 accumulator.remove(0);
                 if (body[i] == ',') {
                     fieldcnt++;
-                }
-                else if (body[i] == '-') {
+                } else if (body[i] == '-') {
                     framecnt++;
                     fieldcnt = 0;
                 }
@@ -199,9 +193,9 @@ void serialEvent()
     }
 }
 
-void setup()
-{
-    FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
+void setup() {
+    FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS)
+        .setCorrection(TypicalSMD5050);
     FastLED.setBrightness(BRIGHTNESS);
     Serial.begin(115200);
 }

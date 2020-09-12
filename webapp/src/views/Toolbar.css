@@ -1,0 +1,33 @@
+.toolbar {
+  margin-right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  height: fit-content;
+  width: max-content;
+}
+
+.color-selector {
+  min-height: 80px;
+  background: deeppink;
+  /* owo WHAT*/
+  margin: 5px;
+}
+
+.framerate-input {
+  max-width: 80px;
+  margin: 5px;
+}
+
+input {
+  max-width: 80px;
+}
+
+.upload-button {
+  margin: 5px;
+  max-width: 80px;
+  font: 14px "Century Gothic",
+    Futura,
+    sans-serif;
+
+}

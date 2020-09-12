@@ -1,0 +1,19 @@
+body {
+  font: 14px "Century Gothic", Futura, sans-serif;
+  margin: 20px;
+}
+
+ol,
+ul {
+  padding-left: 30px;
+}
+
+.kbd-navigation .pixel:focus {
+  background: #ddd;
+}
+
+.App {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
