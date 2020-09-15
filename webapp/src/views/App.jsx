@@ -16,7 +16,7 @@ export class App extends React.Component {
   render() {
     return (
       <div className="App">
-        <ToolbarContainer defFramerate={AppState.toolbar.getFramerate()}/>
+        <ToolbarContainer defFramerate={AppState.toolbar.framerate} />
         <BoardContainer />
       </div>
     );

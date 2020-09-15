@@ -7,8 +7,8 @@ export default class ToolbarContainer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      color: AppState.toolbar.getColor(),
-      framerate: AppState.toolbar.getFramerate()
+      color: AppState.toolbar.color,
+      framerate: AppState.toolbar.framerate
     };
 
     this.handleFrameRateChange = this.handleFrameRateChange.bind(this);
@@ -18,22 +18,22 @@ export default class ToolbarContainer extends React.Component {
 
   handleUploadButton() {
     // get global sequence
-    const sequence = AppState.board.getSequence();
+    const sequence = AppState.board.frameSequence;
     console.log(sequence);
     // send it to the arduino
   }
 
   handleColorChange(color) {
-    AppState.toolbar.setColor(color);
-    this.setState({ color: AppState.toolbar.getColor() })
+    AppState.toolbar.color = color;
+    this.setState({ color: AppState.toolbar.color })
   }
 
   handleFrameRateChange(framerate) {
     framerate = parseInt(framerate);
     if (isNaN(framerate)) return;
 
-    AppState.toolbar.setFramerate(framerate);
-    this.setState({ framerate: AppState.toolbar.getFramerate() });
+    AppState.toolbar.framerate = framerate;
+    this.setState({ framerate: AppState.toolbar.framerate });
   }
 
   render() {

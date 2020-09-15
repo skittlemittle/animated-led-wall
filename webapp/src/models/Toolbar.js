@@ -1,24 +1,24 @@
 class Toolbar {
   constructor() {
     // init stuff
-    this.color = '#ff00ff';
-    this.framerate = 10;
+    this.curColor = '#ff00ff';
+    this.curFramerate = 10;
   }
 
-  setColor(newColor) {
-    this.color = newColor;
+  set color(newColor) {
+    this.curColor = newColor;
   }
 
-  getColor() {
-    return this.color;
+  get color() {
+    return this.curColor;
   }
 
-  setFramerate(framerate) {
-    this.framerate = framerate;
+  set framerate(framerate) {
+    this.curFramerate = framerate;
   }
 
-  getFramerate() {
-    return this.framerate;
+  get framerate() {
+    return this.curFramerate;
   }
 }
 
