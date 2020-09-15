@@ -1,6 +1,6 @@
-import React from 'react';
+import React from 'react'
 
-import './App.css';
+import './styles/App.css'
 import ToolbarContainer from '../containers/ToolbarContainer'
 import BoardContainer from '../containers/BoardContainer'
 import Board from '../models/Board'
@@ -16,7 +16,7 @@ export class App extends React.Component {
   render() {
     return (
       <div className="App">
-        <ToolbarContainer />
+        <ToolbarContainer defFramerate={AppState.toolbar.getFramerate()}/>
         <BoardContainer />
       </div>
     );

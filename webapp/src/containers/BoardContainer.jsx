@@ -1,7 +1,7 @@
-import React from 'react';
+import React from 'react'
 
-import { AppState } from '../views/App';
-import DrawingBoard from '../views/DrawingBoard'
+import { AppState } from '../views/App'
+import Board from '../views/Board'
 
 export default class BoardContainer extends React.Component {
   constructor(props) {
@@ -9,23 +9,22 @@ export default class BoardContainer extends React.Component {
     this.state = {
       frame: AppState.board.getFrame(0)
     };
+    this.handleBoardClick = this.handleBoardClick.bind(this);
   }
 
-  onBoardClick(row, col) {
+  handleBoardClick(row, col) {
     const frameIndex = 0;
     const color = AppState.toolbar.getColor();
-    const frame = this.state.frame.slice();
     // edit le frame
-    frame[row][col] = color;
     AppState.board.editFrame(frameIndex, row, col, color);
     this.setState({ frame: AppState.board.getFrame(frameIndex) });
   }
 
   render() {
     return (
-      <DrawingBoard
+      < Board
         frame={this.state.frame}
-        onClick={(row, col) => this.onBoardClick(row, col)}
+        onBoardClick={(row, col) => this.handleBoardClick(row, col)}
       />
     );
   }

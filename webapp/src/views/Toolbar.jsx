@@ -1,32 +1,27 @@
 // le toolbar innit
-import React from 'react';
-import './Toolbar.css';
+import React from 'react'
+import './styles/Toolbar.css'
+import { ColorSelector } from './ColorSelector'
 
 export default function Toolbar(props) {
   return (
     <div className="toolbar">
-      <ColorSelector />
+      <ColorSelector onColorChange={(c) => props.onColorChange(c)} />
       <ColorIndicator color={props.indicatorColor} />
-      <FrameRateInput framerate={props.framerate} />
+      <FrameRateInput
+        defFramerate={props.defFramerate}
+        onChange={(e) => props.onFramerateChange(e.target.value)}
+      />
       <UploadButton onClick={() => props.onUploadClick()} />
     </div>
   );
 }
 
-function ColorSelector() {
-  return (
-    <div className="color-selector">
-    </div>
-  );
-}
-
-// TODO: proto just a bunch of buttons
 function ColorIndicator(props) {
-  const curColor = props.color;
   return (
     <div
       className="color-indicator"
-      style={{ minHeight: '20', background: { curColor }, margin: '5px' }}
+      style={{ minHeight: '20', background: props.color, margin: '5px' }}
     >
       <p></p>
     </div>
@@ -39,9 +34,8 @@ function FrameRateInput(props) {
       <legend>framerate:</legend>
       <input
         type="text"
-        value={props.framerate}
-        defaultValue={props.framerate}
-        onChange={props.onFramerateChange}
+        defaultValue={props.defFramerate}
+        onChange={props.onChange}
       />
     </div>
   );

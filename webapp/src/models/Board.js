@@ -3,9 +3,10 @@
 class Board {
   constructor() {
     // list of frames
+    this.frameIndex = 0;
     this.sequence = [
       [
-        [-1, '#00ff40', -1, '#7D00FF', '#7D00FF', -1, '#00ff40', -1, ],
+        [-1, '#00ff40', -1, '#7D00FF', '#7D00FF', -1, '#00ff40', -1],
         ['#00ff40', -1, '#7D00FF', '#ffff00', '#ffff00', '#7D00FF', -1, '#00ff40'],
         [-1, '#7D00FF', '#ffff00', -1, -1, '#ffff00', '#7D00FF', -1],
         ['#7D00FF', '#ffff00', -1, -1, -1, -1, '#ffff00', '#7D00FF'],
@@ -15,6 +16,10 @@ class Board {
         [-1, '#00ff40', -1, '#7D00FF', '#7D00FF', -1, '#00ff40', -1]
       ]
     ];
+  }
+
+  getSequence() {
+    return this.sequence.slice();
   }
 
   addFrame(frame) {
