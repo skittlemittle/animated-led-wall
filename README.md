@@ -1,36 +1,53 @@
 # animated-led-wall
-led wall that you can send animations to
+led wall that you can send animations to from a webapp
+because mm yes
 
 # setting up
 
+**the webapp**
+
+- In `webapp/` run:
+
+  ```shell
+    npm install
+    npm run build
+  ```
+
+- In `server/` make a python virtual env then run:
+
+  ```shell
+    pip install
+    python app.py
+  ```
+
+  Edit app.py to set serial port
+
+**Arduino bit**
+
 - flash ledwall/ledwall.ino onto your arduino
 
-- ?
-
-## Animation format:
+## Animation command "protocol":
 
 ```
   RCV <size of message in number of characters>
-  numFrames|frameRate|list_of_frame_sizes+x,y,r,g,b-x,y,r,g,b,x,y,r,g,b-
+
+  numFrames|framerate|+frame-frame-frame-frame
 
   #samples
-  RCV 53
-  02331010+0,0,255,0,0,1,1,0,0,0-0,0,0,0,0,1,1,255,0,0-
 
-  RCV 49
-  03021005+4,4,127,50,6,6,0,125,50,100-7,2,0,255,0-
+  RCV 40
+  0225+[#ffffff,#7dcc00]-[#ffffff,#7dcc00]
 ```
 
-- numFrames:  2 bytes
+- `numFrames`:  2 bytes
 
-- frameRate: 2 bytes
+- `framerate`: 2 bytes
 
-- list_of_frame_sizes: 2 bytes each entry
+- `+`: separates header from body
 
-- +: separates header from body
+- `frame`:
+  A list of hex color vals for the whole frame.
 
-- packets: `x,y,r,g,b`
+  `#ccff7d#00ff00#ffffff......`
 
-- -: separates frames
-
-- ,: separates packet entries
+- `-`: separates frames

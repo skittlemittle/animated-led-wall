@@ -72,7 +72,6 @@ void loop() {
     byte curFrame[8][8][3] = {0};
     // generate the frame amirite
     for (int frame = 0; frame < lenSequence; frame++) {
-        // TODO: magic numbers!
         for (int j = 0; j < frameSizes[frame]; j += 5) {
             // monkey brain
             int row = sequence[frame][j];

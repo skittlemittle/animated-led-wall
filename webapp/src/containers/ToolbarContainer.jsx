@@ -16,11 +16,23 @@ export default class ToolbarContainer extends React.Component {
     this.handleColorChange = this.handleColorChange.bind(this);
   }
 
-  handleUploadButton() {
-    // get global sequence
-    const sequence = AppState.board.frameSequence;
-    console.log(sequence);
-    // send it to the arduino
+  // send animation to the arduino
+  async handleUploadButton() {
+    const data = {
+      framerate: AppState.toolbar.framerate,
+      sequence: AppState.board.frameSequence
+    };
+
+    const options = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    };
+
+    const response = await fetch('/upload', options);
+    console.log(await response.json());
   }
 
   handleColorChange(color) {
