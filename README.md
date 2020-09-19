@@ -2,6 +2,8 @@
 led wall that you can send animations to from a webapp
 because mm yes
 
+note: only works on an 8x8 coz i went full chimp brain and hardcoded
+a lot of garbage in the arduino sketch
 # setting up
 
 **the webapp**
@@ -20,11 +22,13 @@ because mm yes
     python app.py
   ```
 
-  Edit app.py to set serial port
+  Edit `app.py` to set serial port
 
 **Arduino bit**
 
-- flash ledwall/ledwall.ino onto your arduino
+- pin 3 to the led's data pin
+
+- flash `ledwall/ledwall.ino` onto your arduino
 
 ## Animation command "protocol":
 
@@ -36,7 +40,7 @@ because mm yes
   #samples
 
   RCV 40
-  0225+[#ffffff,#7dcc00]-[#ffffff,#7dcc00]
+  0225+#ffffff#7dcc00-#ffffff#7dcc00#
 ```
 
 - `numFrames`:  2 bytes
@@ -47,7 +51,8 @@ because mm yes
 
 - `frame`:
   A list of hex color vals for the whole frame.
+  Always end each frame with a trailing `#`
 
-  `#ccff7d#00ff00#ffffff......`
+  `#ccff7d#00ff00#ffffff......#`
 
 - `-`: separates frames
