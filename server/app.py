@@ -19,23 +19,26 @@ def generateCommand(content):
                 frames += pixel
         frames += "-"
 
+    frames += "#" # trailing # coz of how i wrote the arduino bit
+
     cmd = f"{numFrames:02}{content['framerate']}+{frames}"
     return cmd
 
 
 class Serial:
-    def __init__(self, port="/dev/USB0", rate=9600, timeout=10):
+    def __init__(self, port='/dev/ttyUSB0', rate=9600, timeout=10):
         self._serial = serial.Serial(port, rate, timeout=timeout)
         self.cmdChunkSize = 128.0 # arduino serial buffer size
 
     def _shortCmd(self, cmd):
+        cmd = cmd.encode()
         self._serial.write(cmd)
-        return self._serial.readline().strip()
+        return self._serial.readline()[:-2]
 
     # takes strings chops em up and makes _shortCmd send them
     def _longCmd(self, cmd):
-        response = self._shortCmd("RCV " + str(len(cmd)) + "\n")
-        if response != 'RDY':
+        response = self._shortCmd('RCV ' + str(len(cmd)) + "\n")
+        if response.decode() != 'RDY':
             return None
 
         for i in range(int(math.ceil(len(cmd) / self.cmdChunkSize))):
@@ -63,15 +66,12 @@ def index():
 def handleRequest():
     content = request.json
     cmd = generateCommand(content)
-    print(cmd)
-    serial = Serial(port='/dev/USB0', rate='115200') # have fun manually setting port
-    res = serial.command(cmd)
+    serial.command(cmd)
 
-    if res == cmd:
-        return jsonify("sucess")
-    else:
-        return jsonify("heck")
+    return jsonify("sent")
 
 
 if __name__ == "__main__":
+    # have fun manually setting port
+    serial = Serial(port='/dev/ttyUSB0', rate='115200')
     app.run(port=8000, debug=False)
