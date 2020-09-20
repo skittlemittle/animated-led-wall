@@ -8,31 +8,71 @@
 #define LED_PIN 3
 #define COLOR_ORDER GRB
 #define CHIPSET WS2811
-#define BRIGHTNESS 64
+#define BRIGHTNESS 8
 // wow global vars what a loser
 const uint8_t kMatrixWidth = 8;
 const uint8_t kMatrixHeight = 8;
 const bool kMatrixSerpentineLayout = true;
 #define NUM_LEDS (kMatrixHeight * kMatrixWidth)
-CRGB leds[NUM_LEDS];
+CRGB leds_plus_safety_pixel[NUM_LEDS + 1];
+CRGB *const leds(leds_plus_safety_pixel + 1);
 
 uint8_t lenSequence;
 long *sequence[50];
 uint8_t frameRate;
 bool sequenceExists = false;
 // serial stuff
-char command[1024];
+char command[2048];
 char commandBuffer[128];
 int commandBufferSize;
+
+/*
+ *Helper function that returns led index number given an xy
+ *yoinked from the fastled examples:https://github.com/FastLED/
+ */
+uint16_t XY(uint8_t x, uint8_t y) {
+    uint16_t i;
+
+    if (kMatrixSerpentineLayout == false) {
+        i = (y * kMatrixWidth) + x;
+    }
+
+    if (kMatrixSerpentineLayout == true) {
+        if (y & 0x01) {
+            // Odd rows run backwards
+            uint8_t reverseX = (kMatrixWidth - 1) - x;
+            i = (y * kMatrixWidth) + reverseX;
+        } else {
+            // Even rows run forwards
+            i = (y * kMatrixWidth) + x;
+        }
+    }
+
+    return i;
+}
+
+/*
+ * wraps XY() and gives you array out of bounds protection
+ * also yoinked from the fastled examples
+ */
+uint16_t XYsafe(uint8_t x, uint8_t y) {
+    if (x >= kMatrixWidth)
+        return -1;
+    if (y >= kMatrixHeight)
+        return -1;
+    return XY(x, y);
+}
 
 void loop() {
     if (!sequenceExists)
         return;
 
-    // draw the frames
+    // draw
     for (int frame = 0; frame < lenSequence; frame++) {
-        for (int pixel = 0; pixel < NUM_LEDS; pixel++) {
-          leds[pixel] = sequence[frame][pixel];
+        for (byte y = 0; y < kMatrixHeight; y++) {
+            for(byte x = 0; x < kMatrixWidth; x++) {
+                leds[(XYsafe(x, y))] = sequence[frame][y * kMatrixWidth + x]; // maffs
+            }
         }
 
         FastLED.setBrightness(BRIGHTNESS);
@@ -69,7 +109,7 @@ void readCommand() {
     if (strncmp(commandBuffer, "RCV", 3) == 0) {
         commandBuffer[commandBufferSize] = '\0';
         int expectedSize = atoi(commandBuffer + 4);
-        if (expectedSize <= 0 || expectedSize > 1024) {
+        if (expectedSize <= 0 || expectedSize > 2048) {
             return;
         }
         Serial.println("RDY");
@@ -121,12 +161,11 @@ void serialEvent() {
                 accumulator.concat(body[i]);
             } else {
                 framecnt++;
-                fieldcnt = 0;
+                fieldcnt = -1; // coz -#
             }
             // accumulator get flushed
             if (body[i + 1] == '#') {
                 accumulator.replace(String('#'), String("0x")); // wink wink
-                Serial.println(accumulator);
                 sequence[framecnt][fieldcnt] = strtol(accumulator.c_str(), NULL, 16); // lmao
                 accumulator.remove(0);
 

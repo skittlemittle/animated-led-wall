@@ -43,9 +43,9 @@ a lot of garbage in the arduino sketch
   0225+#ffffff#7dcc00-#ffffff#7dcc00#
 ```
 
-- `numFrames`:  2 bytes
+- `numFrames`:  2 bytes, 2 characters
 
-- `framerate`: 2 bytes
+- `framerate`: 2 bytes, 2 characters
 
 - `+`: separates header from body
 
