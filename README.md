@@ -2,8 +2,7 @@
 led wall that you can send animations to from a webapp
 because mm yes
 
-note: only works on an 8x8 coz i went full chimp brain and hardcoded
-a lot of garbage in the arduino sketch
+set the size of your panel in the arduino sketch
 # setting up
 
 **the webapp**
@@ -54,5 +53,7 @@ a lot of garbage in the arduino sketch
   Always end each frame with a trailing `#`
 
   `#ccff7d#00ff00#ffffff......#`
+
+  The frames have to be as big as the panel or bad things happen
 
 - `-`: separates frames

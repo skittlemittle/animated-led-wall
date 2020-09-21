@@ -1,33 +1,35 @@
 .toolbar {
-  margin-right: 20px;
+  margin: 20px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  justify-content: center;
   height: fit-content;
   width: max-content;
 }
 
 .color-selector {
   min-height: 80px;
-  background: deeppink;
+  background: black;
   /* owo WHAT*/
   margin: 5px;
 }
 
 .framerate-input {
-  max-width: 80px;
+  width: 96%;
+  padding-right: 9px;
   margin: 5px;
 }
 
 input {
-  max-width: 80px;
+  width: inherit;
+  margin: 1px;
 }
 
 .upload-button {
   margin: 5px;
-  max-width: 80px;
+  width: 100%;
   font: 14px "Century Gothic",
     Futura,
     sans-serif;
-
 }

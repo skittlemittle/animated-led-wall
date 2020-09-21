@@ -21,7 +21,15 @@ function ColorIndicator(props) {
   return (
     <div
       className="color-indicator"
-      style={{ minHeight: '20', background: props.color, margin: '5px' }}
+      style={{
+        width: '96%',
+        minHeight: '20px',
+        height: '30px',
+        background: props.color,
+        paddingRight: '10px',
+        margin: '5px',
+        borderRadius: '5px'
+      }}
     >
       <p></p>
     </div>

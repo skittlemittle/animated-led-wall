@@ -6,19 +6,20 @@
 
 .drawing-board {
   margin: 5px;
+  height: max-content;
 }
 
 .pixel {
   background: #fff;
   border: 1px solid #999;
   float: left;
-  line-height: 34px;
-  height: 34px;
+  line-height: 60px;
+  height: 60px;
   margin-right: -1px;
   margin-top: -1px;
   padding: 0;
   text-align: center;
-  width: 34px;
+  width: 60px;
 }
 
 .pixel:focus {

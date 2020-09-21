@@ -8,12 +8,13 @@ import PixelGrid from './PixelGrid'
 // AAAAAHAHAHAHAHAHAHAAHAHAHAHAHAHAHAHAHAHAHHHHAHAHAHA
 // LKSRTHIOERUSTPERITVSERITVSREIUTSOVTITHOSEITOEITHIOTROTIRTOISETVOSIETHSO
 const COLORS = [
-  ['#8B0000', '#ff0000', '#ff0040', '#ff3333'], // red
-  ['#ff4500', '#ffa500', '#ffff00', '#ffff66'], // orange
-  ['#00ff00', '#7cfc00', '#80ff00', '#bfff00'], // green
-  ['#0000ff', '#0080ff', '#00bfff', '#00ffff'], // blue
-  ['#ff00bf', '#ff00ff', '#bf00ff', '#8000ff'], // "pink"
-  ['#000000', '#696969', '#708090', '#ffffff'], // black to white
+  ['#ff0000', '#ff8000', '#ffbf00', '#ffff00'],
+  ['#bfff00', '#80ff00', '#40ff00', '#00ff00'],
+  ['#00ff40', '#00ff80', '#00ffbf', '#00ffff'],
+  ['#00bfff', '#0080ff', '#0040ff', '#0000ff'],
+  ['#4000ff', '#8000ff', '#bf00ff', '#ff00ff'],
+  ['#ff00bf', '#ff0080', '#ff0040', '#ec1313'],
+  ['#000000', '#e0ffff', '#00fa9a', '#ffffff'],
 ];
 
 export class ColorSelector extends React.Component {

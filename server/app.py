@@ -20,7 +20,6 @@ def generateCommand(content):
         frames += "-"
 
     frames += "#" # trailing # coz of how i wrote the arduino bit
-
     cmd = f"{numFrames:02}{content['framerate']}+{frames}"
     return cmd
 
@@ -74,4 +73,4 @@ def handleRequest():
 if __name__ == "__main__":
     # have fun manually setting port
     serial = Serial(port='/dev/ttyUSB0', rate='115200')
-    app.run(port=8000, debug=False)
+    app.run(host='0.0.0.0', port=3000, debug=False)
